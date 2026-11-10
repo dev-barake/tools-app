@@ -14,9 +14,3 @@ We'll implement the PDF Merger in these stages:
 
 
 
-git init
-git add .
-git commit -m "first commit"
-git branch -M main
-git remote add origin https://github.com/dev-barake/tools-app.git
-git push -u origin main

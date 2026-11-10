@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 
 import 'package:tools_app/core/theme/app_colors.dart';
 import 'package:tools_app/features/pdf_merger/controllers/pdf_merge_controller.dart';
+import 'package:tools_app/features/pdf_merger/screens/pdf_preview_screen.dart';
 import 'package:tools_app/features/pdf_merger/widgets/merge_progress.dart';
 import 'package:tools_app/features/pdf_merger/widgets/selected_pdf_list.dart';
 import 'package:tools_app/shared/widgets/tool_components.dart';
@@ -174,6 +175,18 @@ class PdfMergeScreen extends StatelessWidget {
               ),
             ),
 
+            if(hasMergeResult)
+              ElevatedButton.icon(
+                onPressed: (){
+                  final pdfBytes = pdfController.mergedPdfBytes.value;
+
+                  if(pdfBytes == null) return;
+                  Get.to(()=> PdfPreviewScreen(pdfBytes: pdfBytes));
+                }, 
+                label: const Text('Preview PDF'),
+                icon: const Icon(Icons.visibility),
+              ),
+
           //save merged PDF and start another merge
           if(hasMergeResult) ...[
             const SizedBox(height: 16,),
@@ -192,6 +205,8 @@ class PdfMergeScreen extends StatelessWidget {
                 ),
               ),
             ),
+
+            
 
             const SizedBox(height: 10),
 
