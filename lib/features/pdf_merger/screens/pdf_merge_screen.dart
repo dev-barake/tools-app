@@ -175,22 +175,30 @@ class PdfMergeScreen extends StatelessWidget {
               ),
             ),
 
-            if(hasMergeResult)
-              ElevatedButton.icon(
-                onPressed: (){
-                  final pdfBytes = pdfController.mergedPdfBytes.value;
-
-                  if(pdfBytes == null) return;
-                  Get.to(()=> PdfPreviewScreen(pdfBytes: pdfBytes));
-                }, 
-                label: const Text('Preview PDF'),
-                icon: const Icon(Icons.visibility),
-              ),
+          
 
           //save merged PDF and start another merge
           if(hasMergeResult) ...[
             const SizedBox(height: 16,),
             //save PDF button
+
+              
+              SizedBox(
+                width:double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: (){
+                    final pdfBytes = pdfController.mergedPdfBytes.value;
+                
+                    if(pdfBytes == null) return;
+                    Get.to(()=> PdfPreviewScreen(pdfBytes: pdfBytes));
+                  }, 
+                  label: const Text('Preview PDF'),
+                  icon: const Icon(Icons.visibility),
+                ),
+              ),
+
+              const SizedBox(height:10),
+
             SizedBox(
               width: double.infinity,
               child:ElevatedButton.icon(
