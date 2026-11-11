@@ -24,11 +24,13 @@ class SelectedPdfList extends StatelessWidget {
       itemCount: files.length, 
       onReorder: onReorder,
       buildDefaultDragHandles: false,
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
       itemBuilder: (context,index){
         final file = files[index];
 
         return Padding(
-          key: ValueKey('${file.path}-$index'),
+          key: ValueKey(file.path),
           padding:const EdgeInsets.only(bottom:10),
           child:PdfFileTile(
             file: file, 

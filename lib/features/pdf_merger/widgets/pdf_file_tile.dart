@@ -75,7 +75,7 @@ class PdfFileTile extends StatelessWidget {
           ),
           if(dragHandle != null)dragHandle!,
           IconButton(
-            tooltip: 'Remove PDF',
+            tooltip: null,
             onPressed: onRemove,
             icon:const Icon(
               Icons.close_rounded,

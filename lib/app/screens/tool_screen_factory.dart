@@ -14,12 +14,20 @@ import 'package:tools_app/features/qr_code_scanner/screens/qr_scanner_screen.dar
 
 
 Widget buildToolScreen(int index, ToolController controller) => switch (index) {
+
   0 => PdfMergeScreen(controller: controller,pdfController: Get.find<PdfMergeController>(tag:'pdf-merge-$index',),),
+
   1 => QrCodeScreen(controller: controller),
+
   2 => QrScannerScreen(controller: controller),
+
   3 => PasswordScreen(controller: controller),
+
   4 => ImagePdfScreen(controller: controller),
+
   5 => BarcodeReaderScreen(controller: controller),
+
   6 => BarcodeMakerScreen(controller: controller),
+  
   _ => throw RangeError.index(index, toolCatalog),
 };

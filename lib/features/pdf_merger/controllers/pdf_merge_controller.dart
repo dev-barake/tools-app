@@ -208,7 +208,7 @@ class PdfMergeController extends GetxController {
               mimeType:'application/pdf',
             )
           ],
-          fileNameOverrides: ['merged_dosument.pdf'],
+          fileNameOverrides: ['merged_document.pdf'],
         )
       );
     }catch (error){
