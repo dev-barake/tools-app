@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:tools_app/app/data/tool_catalog.dart';
 import 'package:tools_app/features/pdf_merger/controllers/pdf_merge_controller.dart';
+import 'package:tools_app/features/qr_code_maker/controllers/qr_code_generator_controller.dart';
 import 'package:tools_app/shared/controllers/tool_controller.dart';
 import 'package:tools_app/features/barcode_maker/screens/barcode_maker_screen.dart';
 import 'package:tools_app/features/barcode_scanner/screens/barcode_reader_screen.dart';
@@ -15,9 +16,15 @@ import 'package:tools_app/features/qr_code_scanner/screens/qr_scanner_screen.dar
 
 Widget buildToolScreen(int index, ToolController controller) => switch (index) {
 
-  0 => PdfMergeScreen(controller: controller,pdfController: Get.find<PdfMergeController>(tag:'pdf-merge-$index',),),
+  0 => PdfMergeScreen(
+    controller: controller,
+    pdfController: Get.find<PdfMergeController>(tag:'pdf-merge-$index',),
+  ),
 
-  1 => QrCodeScreen(controller: controller),
+  1 => QrCodeScreen(
+    controller: controller,
+    qrController: Get.find<QrCodeGeneratorController>(tag:'qr-code-$index',),
+  ),
 
   2 => QrScannerScreen(controller: controller),
 
@@ -28,6 +35,6 @@ Widget buildToolScreen(int index, ToolController controller) => switch (index) {
   5 => BarcodeReaderScreen(controller: controller),
 
   6 => BarcodeMakerScreen(controller: controller),
-  
+
   _ => throw RangeError.index(index, toolCatalog),
 };

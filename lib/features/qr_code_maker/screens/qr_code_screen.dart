@@ -1,14 +1,20 @@
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:tools_app/features/qr_code_maker/controllers/qr_code_generator_controller.dart';
 import 'package:tools_app/shared/controllers/tool_controller.dart';
 import 'package:tools_app/core/theme/app_colors.dart';
 import 'package:tools_app/shared/widgets/tool_components.dart';
 
-
 class QrCodeScreen extends StatelessWidget {
-  const QrCodeScreen({super.key, required this.controller});
+  const QrCodeScreen({
+    super.key,
+    required this.controller,
+    required this.qrController,
+  });
 
   final ToolController controller;
+  final QrCodeGeneratorController qrController;
 
   @override
   Widget build(BuildContext context) {
@@ -23,17 +29,18 @@ class QrCodeScreen extends StatelessWidget {
             children: [
               const FieldLabel('CONTENT TYPE'),
               const SizedBox(height: 10),
+
               Obx(
                 () => Wrap(
                   spacing: 7,
                   runSpacing: 7,
                   children: types.map((type) {
-                    final selected = type == controller.qrType.value;
+                    final selected = type == qrController.qrType.value;
 
                     return ChoiceChip(
                       label: Text(type),
                       selected: selected,
-                      onSelected: (_) => controller.setQrType(type),
+                      onSelected: (_) => qrController.setQrType(type),
                       selectedColor: AppColors.lime,
                       backgroundColor: AppColors.panelRaised,
                       side: const BorderSide(color: AppColors.line),
@@ -49,79 +56,218 @@ class QrCodeScreen extends StatelessWidget {
                   }).toList(),
                 ),
               ),
+
               const SizedBox(height: 19),
-              Obx(
-                () => TextField(
-                  controller: controller.valueController,
-                  maxLines: controller.qrType.value == 'Text' ? 4 : 1,
-                  maxLength: controller.qrType.value == 'Text' ? 1800 : null,
-                  decoration: InputDecoration(
-                    labelText: controller.qrType.value == 'URL'
-                        ? 'Website address'
-                        : controller.qrType.value,
-                    hintText: switch (controller.qrType.value) {
-                      'URL' => 'https://example.com',
-                      'Email' => 'hello@example.com',
-                      'Phone' => '+1 555 123 4567',
-                      'SMS' => 'Your message',
-                      'Wi-Fi' => 'Network name',
-                      'vCard' => 'Name, phone, email…',
-                      _ => 'Type something to share',
-                    },
-                    alignLabelWithHint: true,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 13),
+
+              Obx(() {
+                final type = qrController.qrType.value;
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (type == 'vCard') ...[
+                      TextField(
+                        controller: qrController.nameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Contact name',
+                          hintText: 'John Doe',
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: qrController.phoneController,
+                        keyboardType: TextInputType.phone,
+                        decoration: const InputDecoration(
+                          labelText: 'Phone number',
+                          hintText: '+254 700 000000',
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: qrController.emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        decoration: const InputDecoration(
+                          labelText: 'Email address',
+                          hintText: 'hello@example.com',
+                        ),
+                      ),
+                    ] else ...[
+                      TextField(
+                        controller: qrController.valueController,
+                        maxLines: type == 'Text' ? 4 : 1,
+                        maxLength: type == 'Text' ? 1800 : null,
+                        keyboardType: switch (type) {
+                          'Email' => TextInputType.emailAddress,
+                          'Phone' => TextInputType.phone,
+                          _ => TextInputType.text,
+                        },
+                        decoration: InputDecoration(
+                          labelText: switch (type) {
+                            'URL' => 'Website address',
+                            'Wi-Fi' => 'Network name',
+                            'SMS' => 'SMS message',
+                            _ => type,
+                          },
+                          hintText: switch (type) {
+                            'URL' => 'https://example.com',
+                            'Email' => 'hello@example.com',
+                            'Phone' => '+254 700 000000',
+                            'SMS' => 'Your message',
+                            'Wi-Fi' => 'Network name',
+                            _ => 'Type something to share',
+                          },
+                          alignLabelWithHint: true,
+                        ),
+                      ),
+                    ],
+
+                    if (type == 'Wi-Fi') ...[
+                      const SizedBox(height: 12),
+                      Obx(
+                        () => DropdownButtonFormField<String>(
+                          value: qrController.wifiSecurity.value,
+                          decoration: const InputDecoration(
+                            labelText: 'Security',
+                          ),
+                          items: const [
+                            DropdownMenuItem(
+                              value: 'WPA',
+                              child: Text('WPA/WPA2'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'WEP',
+                              child: Text('WEP'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'nopass',
+                              child: Text('No password'),
+                            ),
+                          ],
+                          onChanged: (value) {
+                            if (value != null) {
+                              qrController.setWifiSecurity(value);
+                            }
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Obx(
+                        () => TextField(
+                          controller: qrController.passwordController,
+                          obscureText: qrController.hideWifiPassword.value,
+                          enabled: qrController.wifiSecurity.value != 'nopass',
+                          decoration: InputDecoration(
+                            labelText: 'Wi-Fi password',
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                qrController.hideWifiPassword.value
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                              ),
+                              onPressed: () {
+                                qrController.hideWifiPassword.toggle();
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                );
+              }),
+
+              const SizedBox(height: 19),
               const FieldLabel('ERROR CORRECTION'),
               const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                children: ['Low', 'Medium', 'Quartile', 'High']
-                    .map(
-                      (level) => SettingPill(
-                        label: level,
-                        selected: level == 'Medium',
-                        onTap: () {},
-                      ),
-                    )
-                    .toList(),
+
+              Obx(
+                () => Wrap(
+                  spacing: 8,
+                  children: ['Low', 'Medium', 'Quartile', 'High']
+                      .map(
+                        (level) => SettingPill(
+                          label: level,
+                          selected:
+                              qrController.errorCorrectionLevel.value == level,
+                          onTap: () =>
+                              qrController.setErrorCorrectionLevel(level),
+                        ),
+                      )
+                      .toList(),
+                ),
               ),
             ],
           ),
         ),
+
         const SizedBox(height: 14),
+
         ToolPanel(
-          child: Column(
-            children: [
-              Container(
-                width: 168,
-                height: 168,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(14),
+          child: Obx(() {
+            final imageBytes = qrController.generatedImageBytes.value;
+
+            return Column(
+              children: [
+                Container(
+                  width: 220,
+                  height: 220,
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: imageBytes != null
+                      ? Image.memory(
+                          imageBytes,
+                          fit: BoxFit.contain,
+                        )
+                      : const Icon(
+                          Icons.qr_code_2_rounded,
+                          color: AppColors.qrPlaceholder,
+                          size: 130,
+                        ),
                 ),
-                child: const Icon(
-                  Icons.qr_code_2_rounded,
-                  color: AppColors.qrPlaceholder,
-                  size: 112,
+                const SizedBox(height: 12),
+                Text(
+                  imageBytes != null
+                      ? 'Your QR code is ready'
+                      : 'Your QR preview will appear here',
+                  style: const TextStyle(
+                    color: AppColors.muted,
+                    fontSize: 11,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'Your QR preview will appear here',
-                style: TextStyle(color: AppColors.muted, fontSize: 11),
-              ),
-            ],
+              ],
+            );
+          }),
+        ),
+
+        const SizedBox(height: 14),
+
+        Obx(
+          () => PrimaryButton(
+            label: qrController.isGenerating.value
+                ? 'Generating...'
+                : 'Generate QR code',
+            icon: Icons.auto_awesome_rounded,
+            onPressed: qrController.isGenerating.value
+                ? () {}
+                : qrController.generateQrCode,
           ),
         ),
-        const SizedBox(height: 14),
-        PrimaryButton(
-          label: 'Generate QR code',
-          icon: Icons.auto_awesome_rounded,
-          onPressed: controller.generateQrCode,
-        ),
-        ToolMessage(controller: controller),
+
+        Obx(() {
+          if (qrController.errorMesssage.value.isEmpty) {
+            return const SizedBox.shrink();
+          }
+
+          return Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: InlineMessage(
+              text: qrController.errorMesssage.value,
+            ),
+          );
+        }),
       ],
     );
   }

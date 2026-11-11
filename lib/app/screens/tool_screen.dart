@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:tools_app/app/data/tool_catalog.dart';
 import 'package:tools_app/app/models/tool_info.dart';
 import 'package:tools_app/features/pdf_merger/controllers/pdf_merge_controller.dart';
+import 'package:tools_app/features/qr_code_maker/controllers/qr_code_generator_controller.dart';
 import 'package:tools_app/shared/controllers/tool_controller.dart';
 import 'package:tools_app/core/theme/app_colors.dart';
 import 'package:tools_app/shared/widgets/tool_components.dart';
@@ -29,6 +30,7 @@ class _ToolScreenState extends State<ToolScreen> {
   late final ToolController controller;
   late final String controllerTag;
   String? pdfControllerTag;
+  String? qrControllerTag;
 
   ToolInfo get tool => toolCatalog[widget.toolIndex];
 
@@ -50,6 +52,14 @@ class _ToolScreenState extends State<ToolScreen> {
         tag:pdfControllerTag
       );
     }
+    if(widget.toolIndex ==1){
+      qrControllerTag = 'qr-code-${widget.toolIndex}';
+
+      Get.put(
+        QrCodeGeneratorController(),
+        tag:qrControllerTag
+      );
+    }
   }
 
   @override
@@ -57,6 +67,10 @@ class _ToolScreenState extends State<ToolScreen> {
     Get.delete<ToolController>(tag: controllerTag);
     if(pdfControllerTag != null){
       Get.delete<PdfMergeController>(tag: pdfControllerTag);
+    }
+
+    if(qrControllerTag != null){
+      Get.delete<QrCodeGeneratorController>(tag: qrControllerTag);
     }
     super.dispose();
   }

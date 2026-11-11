@@ -4,10 +4,12 @@
 
 
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:tools_app/features/qr_code_maker/models/qr_code_generator_model.dart';
+import 'package:tools_app/features/qr_code_maker/services/qr_code_generator_service.dart';
 
 class QrCodeGeneratorController extends GetxController{
 
@@ -39,6 +41,9 @@ class QrCodeGeneratorController extends GetxController{
   //UI state
   final RxBool isGenerating = false.obs;
   final RxString errorMesssage = ''.obs;
+
+  final QrCodeGeneratorService _qrCodeService = QrCodeGeneratorService();
+  final Rxn<Uint8List> generatedImageBytes = Rxn<Uint8List>();
 
   //change qr content type
   void setQrType(String value){
@@ -82,6 +87,7 @@ class QrCodeGeneratorController extends GetxController{
   //Clear generated QR
   void clearGeneratedQr(){
     generatedQr.value = null;
+    generatedImageBytes.value = null;
   }
 
   //display error message
@@ -95,7 +101,7 @@ class QrCodeGeneratorController extends GetxController{
   }
 
   //Generate QR configuration
-  void generateQrCode(){
+  Future<void> generateQrCode() async {
     if(isGenerating.value) return;
     final data = _buildQrData();
 
@@ -103,7 +109,10 @@ class QrCodeGeneratorController extends GetxController{
       return;
     }
 
-    generatedQr.value = QrCodeModel(
+    isGenerating.value = true;
+    clearMessage();
+
+    final qrModel = QrCodeModel(
       type: qrType.value,
       data: data,
       errorCorrectionLevel: errorCorrectionLevel.value,
@@ -111,7 +120,16 @@ class QrCodeGeneratorController extends GetxController{
       backgroundColor: backgroundColor.value,
       size: qrSize.value
     );
-    clearMessage();
+
+    try{
+      final imageBytes = await _qrCodeService.generateQeImage(qrModel);
+      generatedQr.value = qrModel;
+      generatedImageBytes.value = imageBytes;
+    }catch(error){
+      showMessage('Unable to generate QR code: $error');
+    }finally{
+      isGenerating.value = false;
+    }
   }
 
   //prepare stata according to selected QR type
@@ -125,7 +143,7 @@ class QrCodeGeneratorController extends GetxController{
           return null;
         }
         final uri = Uri.tryParse(url);
-        if(uri == null || !uri.hasAuthority || !['hhtp' ,'https'].contains(uri.scheme.toLowerCase())){
+        if(uri == null || !uri.hasAuthority || !['http' ,'https'].contains(uri.scheme.toLowerCase())){
           showMessage('Enter a vali URL starting with http:// or https://.');
           return null;
         }
@@ -229,9 +247,12 @@ class QrCodeGeneratorController extends GetxController{
   }
 
   //escaped special wifi character
-  String _escapeWifiValue(String value){
-    return value.replaceAll(RegExp(r'([\\;,:""])'), r'\$1',);
-  }
+  String _escapeWifiValue(String value) {
+  return value.replaceAllMapped(
+    RegExp(r'([\\;,:""])'),
+    (match) => '\\${match[0]}',
+  );
+}
 
   //escape special vCard chracters
   String _escapeVCardValue(String value){

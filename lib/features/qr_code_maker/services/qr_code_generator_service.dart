@@ -60,8 +60,8 @@ class QrCodeGeneratorService {
         return QrErrorCorrectLevel.M;
       case 'High':
         return QrErrorCorrectLevel.H;
-      case 'Low':
-        return QrErrorCorrectLevel.L;
+      case 'Quartile':
+        return QrErrorCorrectLevel.Q;
 
       default:
         return QrErrorCorrectLevel.M;
