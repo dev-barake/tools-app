@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:tools_app/features/qr_code_maker/controllers/qr_code_generator_controller.dart';
+import 'package:tools_app/features/qr_code_maker/widgets/qr_color_picker.dart';
 import 'package:tools_app/shared/controllers/tool_controller.dart';
 import 'package:tools_app/core/theme/app_colors.dart';
 import 'package:tools_app/shared/widgets/tool_components.dart';
@@ -196,6 +197,55 @@ class QrCodeScreen extends StatelessWidget {
                       .toList(),
                 ),
               ),
+             
+
+              const SizedBox(height: 20,),
+              const Divider(color: AppColors.lime),
+              const SizedBox(height: 16,),
+
+              const FieldLabel('QR CODE CUSTOMIZATION'),
+              const SizedBox(height: 16,),
+
+              Obx(() => QrColorPicker(
+                title: 'FOREGROUND COLOR', 
+                selectedColor: qrController.foregroundColor.value, 
+                onColorSelected: qrController.setForegroundColor
+              ) 
+              ),
+              const SizedBox(height: 20,),
+              Obx(()=> QrColorPicker(
+                title: 'BACKGROUND COLOR', 
+                selectedColor: qrController.backgroundColor.value, 
+                onColorSelected: qrController.setBackgroundColor
+              )
+                
+              ),
+              const SizedBox(height:20),
+              Obx(()=>Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const FieldLabel('QR CODE SIZE'),
+                      Text(
+                        '${qrController.qrSize.value.round()} px',
+                        style: const TextStyle(
+                          color: AppColors.line,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Slider(
+                    value: qrController.qrSize.value, 
+                    min: 150,
+                    max: 400,
+                    onChanged: qrController.setQrSize
+                  )
+                ],
+              ),
+              )
             ],
           ),
         ),
@@ -255,6 +305,87 @@ class QrCodeScreen extends StatelessWidget {
                 : qrController.generateQrCode,
           ),
         ),
+
+        Obx(
+          (){
+            if(qrController.generatedImageBytes.value == null){
+              return const SizedBox.shrink();
+            }
+            return Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: OutlinedButton.icon(
+                  onPressed: qrController.isSaving.value ? null :
+                    qrController.saveQrCode, 
+                  icon: qrController.isSaving.value ? 
+                   const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                    ),
+                   ) : const Icon(Icons.download_rounded),
+                  label: Text(
+                    qrController.isSaving.value ? 'Saving QR Code...' 
+                    : 'Save QR Code.'
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.line,
+                    side: const BorderSide(
+                      color: AppColors.lime
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)
+                    )
+                  ),
+                ),
+              ),
+            );
+          }
+        ),
+
+        Obx((){
+          if(qrController.generatedImageBytes.value == null){
+            return const SizedBox.shrink();
+          }
+
+          return Padding(
+            padding: const EdgeInsets.only(
+              top: 12,
+            ),
+            child: SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: OutlinedButton.icon(
+                onPressed: qrController.isSharing.value ? null :
+                  qrController.shareQrCode,
+                icon: qrController.isSharing.value ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2,),
+                ) : const Icon(Icons.share_rounded), 
+                label: Text(
+                  qrController.isSharing.value ? 'Preparing to share...'
+                  : 'Shae QR Code.'
+                ),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.lime,
+                  side:const BorderSide(
+                    color:AppColors.line
+                  ),
+                  shape:RoundedRectangleBorder(
+                    borderRadius:BorderRadius.circular(12)
+                  )
+                ),
+              ),
+            ),
+          );
+        }),
+
+
+
 
         Obx(() {
           if (qrController.errorMesssage.value.isEmpty) {

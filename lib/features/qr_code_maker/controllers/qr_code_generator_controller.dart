@@ -7,9 +7,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:qr_flutter/qr_flutter.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:tools_app/features/qr_code_maker/models/qr_code_generator_model.dart';
 import 'package:tools_app/features/qr_code_maker/services/qr_code_generator_service.dart';
+import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 
 class QrCodeGeneratorController extends GetxController{
 
@@ -44,6 +45,10 @@ class QrCodeGeneratorController extends GetxController{
 
   final QrCodeGeneratorService _qrCodeService = QrCodeGeneratorService();
   final Rxn<Uint8List> generatedImageBytes = Rxn<Uint8List>();
+
+  final RxBool isSharing = false.obs;
+
+  final RxBool isSaving = false.obs;
 
   //change qr content type
   void setQrType(String value){
@@ -129,6 +134,69 @@ class QrCodeGeneratorController extends GetxController{
       showMessage('Unable to generate QR code: $error');
     }finally{
       isGenerating.value = false;
+    }
+  }
+
+  Future<void> saveQrCode()async{
+    if(isSaving.value) return;
+
+    final imageBytes = generatedImageBytes.value;
+
+    if(imageBytes == null){
+      showMessage('Generate a QR code before saving');
+      return;
+    }
+
+    isSaving.value = true;
+    clearMessage();
+
+    try{
+      final result = await ImageGallerySaverPlus.saveImage(
+        imageBytes,
+        name:'QR_CODE_${DateTime.now().millisecondsSinceEpoch}'
+      );
+
+      if(result is Map && result['isSuccess'] == true){
+        showMessage('QR Code saved successfully to your gallery');
+      }else{
+        showMessage('Unable to save QR code. Please ty again.');
+      }
+    }catch (error){
+      showMessage('Error saving QR code: $error');
+    }finally{
+      isSaving.value = false;
+    }
+  }
+
+  Future<void> shareQrCode()async{
+    if(isSharing.value) return;
+
+    final imageBytes = generatedImageBytes.value;
+
+    if(imageBytes == null){
+      showMessage('Generate a QR code before sharing.');
+      return;
+    }
+    isSharing.value = true;
+    clearMessage();
+
+    try{
+      await SharePlus.instance.share(
+        ShareParams(
+          files:[
+            XFile.fromData(
+              imageBytes,
+              mimeType: 'image/png',
+              name: 'qr_code.png',
+            )
+          ],
+          text: 'QR code generated using Tool App.'
+        )
+      );
+    }catch (error){
+      showMessage('Unable to share QR Code: $error');
+    }finally{
+      isSharing.value = false;
     }
   }
 
